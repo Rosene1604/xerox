@@ -1,0 +1,116 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Xerox e Impressões</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: Arial, sans-serif; background: #f4f6f8; color: #1f2933; }
+    header { background: #1d4ed8; color: #fff; text-align: center; padding: 40px 20px; }
+    header h1 { margin: 0 0 8px; font-size: 28px; }
+    header p { margin: 0; opacity: .9; }
+    main { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .card { background: #fff; border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,.08); }
+    h2 { margin-top: 0; font-size: 20px; }
+    .preco { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #e5e7eb; }
+    .preco:last-child { border-bottom: none; }
+    .linha { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+    .linha label { flex: 1; }
+    .linha input { width: 90px; padding: 10px; font-size: 16px; border: 1px solid #cbd5e1; border-radius: 8px; text-align: center; }
+    .total { text-align: center; margin: 20px 0 10px; }
+    .total span { display: block; font-size: 36px; font-weight: bold; color: #1d4ed8; }
+    .botao { display: block; background: #16a34a; color: #fff; text-align: center; text-decoration: none; padding: 14px; border-radius: 10px; font-size: 18px; font-weight: bold; }
+    .botao:hover { background: #15803d; }
+    footer { text-align: center; padding: 20px; color: #64748b; font-size: 14px; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Xerox e Impressões</h1>
+    <p>Cópias e impressões rápidas, com preço justo</p>
+  </header>
+
+  <main>
+    <section class="card">
+      <h2>Nossos preços</h2>
+      <div class="preco"><span>Xerox preto e branco</span><strong>R$ 1,00</strong></div>
+      <div class="preco"><span>Xerox colorido</span><strong>R$ 2,00</strong></div>
+      <div class="preco"><span>Foto colorida</span><strong>R$ 5,00</strong></div>
+    </section>
+
+    <section class="card">
+      <h2>Calcule seu pedido</h2>
+
+      <div class="linha">
+        <label for="qtd-pb">Preto e branco (páginas)</label>
+        <input type="number" id="qtd-pb" min="0" value="0" inputmode="numeric">
+      </div>
+      <div class="linha">
+        <label for="qtd-cor">Colorido (páginas)</label>
+        <input type="number" id="qtd-cor" min="0" value="0" inputmode="numeric">
+      </div>
+      <div class="linha">
+        <label for="qtd-foto">Fotos coloridas</label>
+        <input type="number" id="qtd-foto" min="0" value="0" inputmode="numeric">
+      </div>
+
+      <div class="total">Total <span id="total">R$ 0,00</span></div>
+
+      <a id="botao-whatsapp" class="botao" href="#" target="_blank" rel="noopener">Pedir pelo WhatsApp</a>
+    </section>
+  </main>
+
+  <footer>
+    <p>AV GETULIO VARGA PIRAPUTANGA/MS</p>
+    <p>das 7:00hs as 22:00hs</p>
+  </footer>
+
+  <script>
+    // ====== EDITE AQUI ======
+    const WHATSAPP = "5567998007707"; // 55 + DDD + número, sem espaços nem traços
+    const PRECOS = { pb: 1.00, cor: 2.00, foto: 5.00 };
+    // ========================
+
+    const campoPb = document.getElementById("qtd-pb");
+    const campoCor = document.getElementById("qtd-cor");
+    const campoFoto = document.getElementById("qtd-foto");
+    const textoTotal = document.getElementById("total");
+    const botao = document.getElementById("botao-whatsapp");
+
+    function moeda(valor) {
+      return valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+    }
+
+    function calcular() {
+      const pb = Math.max(0, Number(campoPb.value) || 0);
+      const cor = Math.max(0, Number(campoCor.value) || 0);
+      const foto = Math.max(0, Number(campoFoto.value) || 0);
+
+      const total = pb * PRECOS.pb + cor * PRECOS.cor + foto * PRECOS.foto;
+      textoTotal.textContent = moeda(total);
+
+      let mensagem = "Olá! Gostaria de fazer um pedido:\n";
+      if (pb > 0) mensagem += `- ${pb} página(s) preto e branco\n`;
+      if (cor > 0) mensagem += `- ${cor} página(s) colorida(s)\n`;
+      if (foto > 0) mensagem += `- ${foto} foto(s) colorida(s)\n`;
+
+      if (total > 0) {
+        mensagem += `Total: ${moeda(total)}`;
+      } else {
+        mensagem = "Olá! Gostaria de fazer um orçamento.";
+      }
+
+      botao.href = `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(mensagem)}`;
+    }
+
+    [campoPb, campoCor, campoFoto].forEach(function (campo) {
+      campo.addEventListener("input", calcular);
+    });
+
+    calcular();
+  </script>
+
+</body>
+</html>
