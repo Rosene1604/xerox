@@ -22,6 +22,10 @@
     .total span { display: block; font-size: 36px; font-weight: bold; color: #1d4ed8; }
     .botao { display: block; background: #16a34a; color: #fff; text-align: center; text-decoration: none; padding: 14px; border-radius: 10px; font-size: 18px; font-weight: bold; }
     .botao:hover { background: #15803d; }
+    button.botao { width: 100%; border: 0; cursor: pointer; font-family: inherit; }
+    .botao-pix { background: #0f766e; }
+    .botao-pix:hover { background: #115e59; }
+    .dica { font-size: 14px; color: #64748b; margin-bottom: 0; }
     footer { text-align: center; padding: 20px; color: #64748b; font-size: 14px; }
   </style>
 </head>
@@ -60,17 +64,27 @@
 
       <a id="botao-whatsapp" class="botao" href="#" target="_blank" rel="noopener">Pedir pelo WhatsApp</a>
     </section>
+
+    <section class="card">
+      <h2>Pagar com Pix</h2>
+      <p>O valor do seu pedido já vai preenchido.</p>
+      <button class="botao botao-pix" id="copiar-pix" type="button">Copiar Pix (copia e cola)</button>
+      <p class="dica">No app do seu banco, escolha Pix, depois "Pix copia e cola" e cole o código.</p>
+    </section>
   </main>
 
   <footer>
-    <p>AV GETULIO VARGA PIRAPUTANGA/MS</p>
-    <p>das 7:00hs as 22:00hs</p>
+    <p>Endereço: escreva aqui o endereço da loja</p>
+    <p>Horário: escreva aqui o horário de funcionamento</p>
   </footer>
 
   <script>
     // ====== EDITE AQUI ======
-    const WHATSAPP = "5567998007707"; // 55 + DDD + número, sem espaços nem traços
+    const WHATSAPP = "5567998007707";        // 55 + DDD + número, sem espaços nem traços
     const PRECOS = { pb: 1.00, cor: 2.00, foto: 5.00 };
+    const PIX_CHAVE = "roseneferreira1604@gmail.com";       // de preferência uma chave aleatória
+    const PIX_NOME = "Rosene Ferreira dos Santos";  // até 25 letras
+    const PIX_CIDADE = "Aquidauana";         // até 15 letras
     // ========================
 
     const campoPb = document.getElementById("qtd-pb");
@@ -78,6 +92,9 @@
     const campoFoto = document.getElementById("qtd-foto");
     const textoTotal = document.getElementById("total");
     const botao = document.getElementById("botao-whatsapp");
+    const botaoPix = document.getElementById("copiar-pix");
+
+    let totalAtual = 0;
 
     function moeda(valor) {
       return valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -89,6 +106,7 @@
       const foto = Math.max(0, Number(campoFoto.value) || 0);
 
       const total = pb * PRECOS.pb + cor * PRECOS.cor + foto * PRECOS.foto;
+      totalAtual = total;
       textoTotal.textContent = moeda(total);
 
       let mensagem = "Olá! Gostaria de fazer um pedido:\n";
@@ -107,6 +125,44 @@
 
     [campoPb, campoCor, campoFoto].forEach(function (campo) {
       campo.addEventListener("input", calcular);
+    });
+
+    // ---------- Pix copia e cola ----------
+    function campo(id, valor) {
+      return id + String(valor.length).padStart(2, "0") + valor;
+    }
+
+    function crc16(texto) {
+      let crc = 0xFFFF;
+      for (let i = 0; i < texto.length; i++) {
+        crc ^= texto.charCodeAt(i) << 8;
+        for (let j = 0; j < 8; j++) {
+          crc = (crc & 0x8000) ? ((crc << 1) ^ 0x1021) : (crc << 1);
+          crc &= 0xFFFF;
+        }
+      }
+      return crc.toString(16).toUpperCase().padStart(4, "0");
+    }
+
+    function limpar(texto, max) {
+      return texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase().slice(0, max);
+    }
+
+    function gerarPix(chave, nome, cidade, valor) {
+      const conta = campo("00", "br.gov.bcb.pix") + campo("01", chave);
+      let p = campo("00", "01") + campo("26", conta) + campo("52", "0000") + campo("53", "986");
+      if (valor > 0) p += campo("54", valor.toFixed(2));
+      p += campo("58", "BR") + campo("59", limpar(nome, 25)) + campo("60", limpar(cidade, 15));
+      p += campo("62", campo("05", "***")) + "6304";
+      return p + crc16(p);
+    }
+
+    botaoPix.addEventListener("click", function () {
+      const codigo = gerarPix(PIX_CHAVE, PIX_NOME, PIX_CIDADE, totalAtual);
+      navigator.clipboard.writeText(codigo).then(function () {
+        botaoPix.textContent = "Código copiado! Cole no app do banco";
+        setTimeout(function () { botaoPix.textContent = "Copiar Pix (copia e cola)"; }, 3000);
+      });
     });
 
     calcular();
